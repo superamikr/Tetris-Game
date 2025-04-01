@@ -17,5 +17,13 @@ WINDOW_WIDTH = GAME_WIDTH+SIDEBAR_WIDTH+PADDING*3#between the side and the game,
 WINDOW_HEIGHT = GAME_HEIGHT+PADDING*2
 
 
-#colours
-YELLOW = "#f1e60d"
+# Colors
+YELLOW = '#f1e60d'
+RED = '#e51b20'
+BLUE =  '#204b9b'
+GREEN = '#65b32e'
+PURPLE = '#7b217f'
+CYAN = '#6cc6d9'
+ORANGE = '#f07e13'
+GRAY =  '#1C1C1C'
+LINE_COLOR = '#FFFFFF'

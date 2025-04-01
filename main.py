@@ -1,6 +1,8 @@
 from settings import *
 from sys import exit
-
+from game import Game
+from score import Score
+from preview import Preview
 class Main:
     def __init__(self):
         # general
@@ -8,6 +10,10 @@ class Main:
         self.display_surface = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
         self.clock = pygame.time.Clock()
         pygame.display.set_caption('Tetris')
+        #componemts
+        self.game = Game()
+        self.score = Score()
+        self.preview = Preview()
     def run(self):
         while True:
             for event in pygame.event.get():
@@ -15,7 +21,11 @@ class Main:
                     pygame.quit()
                     exit()
             # display
-            self.display_surface.fill(YELLOW)
+            self.display_surface.fill(GRAY)
+            #רכיבי המשחק
+            self.score.run()
+            self.game.run()
+            self.preview.run()
             #מעדכן את המשחק
             pygame.display.update()
             self.clock.tick(60)
