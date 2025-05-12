@@ -28,7 +28,7 @@ class Main:
             self.preview.run()
             #מעדכן את המשחק
             pygame.display.update()
-            self.clock.tick(60)
+            self.clock.tick(FPS)
 
     def board(self):
         for x in range(0, WINDOW_WIDTH, COLUMNS):

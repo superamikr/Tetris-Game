@@ -1,5 +1,5 @@
-
-
+import pygame
+import random
 from template import *
 
 
@@ -17,15 +17,12 @@ class Game(Template):
         self.line_surface.set_colorkey((0, 255, 0))
         self.line_surface.set_alpha(120)
 
-
-
         # test Block
         self.sprites = pygame.sprite.Group()
-        self.block = Block(self.sprites, pygame.Vector2(1,4), 'red')
-
+        # self.block = Block(self.sprites, (4, 6), 'red')
 
         # Tetromino
-        self.tetromino = Tetromino('T', self.sprites)
+        self.tetromino = Tetromino(random.choice(list(TETROMINOS.keys())), self.sprites)
 
     def draw_grid(self):
         for col in range(1, COLUMNS):
@@ -45,18 +42,14 @@ class Game(Template):
         pygame.draw.rect(self.display_surface, LINE_COLOR, self.rect, 2, 2)
 
 
-class Tetromino():
+class Tetromino:
     def __init__(self, shape, sprite_group):
-        #setup
+        # setup
         self.block_positions = TETROMINOS[shape]['shape']
-        self.color=TETROMINOS[shape]['color']
-        self.sprite_group=sprite_group
-        #create blocks
-        self.blocks = [Block(self.sprite_group,pos,self.color) for pos in self.block_positions]
-
-
-
-
+        self.color = TETROMINOS[shape]['color']
+        self.sprite_group = sprite_group
+        # create blocks
+        self.blocks = [Block(self.sprite_group, pos, self.color) for pos in self.block_positions]
 
 
 class Block(pygame.sprite.Sprite):
@@ -67,9 +60,8 @@ class Block(pygame.sprite.Sprite):
         self.image = pygame.Surface((CELL_SIZE, CELL_SIZE))
         self.image.fill(color)
 
-
         # positions
-        self.pos = pygame.Vector2(pos)
-        x=self.pos.x
-        y=self.pos.y
+        self.pos = pygame.Vector2(pos)+BLOCK_OFFSET
+        x = self.pos.x
+        y = self.pos.y
         self.rect = self.image.get_rect(topleft=(x * CELL_SIZE, y * CELL_SIZE))
