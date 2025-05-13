@@ -1,7 +1,6 @@
-import pygame
 import random
 from template import *
-
+from timer import Timer
 
 class Game(Template):
     def __init__(self):
@@ -24,6 +23,30 @@ class Game(Template):
         # Tetromino
         self.tetromino = Tetromino(random.choice(list(TETROMINOS.keys())), self.sprites)
 
+        #timer
+        self.timers = {
+            'vertical move': Timer(UPDATE_START_SPEED,True, self.move_down),
+            'horizontal move': Timer(MOVE_WAIT_TIME)
+        }
+        self.timers['vertical move'].activate()
+
+    def timer_update(self):
+        for timer in  self.timers.values():
+            timer.update()
+    def move_down(self):
+        self.tetromino.move_down()
+
+    def input(self):
+        keys = pygame.key.get_pressed()
+        if not self.timers['horizontal move'].active:
+            if keys[pygame.K_a]:
+                self.tetromino.move_horizontal(-1)
+                self.timers['horizontal move'].activate()
+            if keys[pygame.K_d]:
+                self.tetromino.move_horizontal(1)
+                self.timers['horizontal move'].activate()
+
+
     def draw_grid(self):
         for col in range(1, COLUMNS):
             x = col * CELL_SIZE
@@ -34,8 +57,17 @@ class Game(Template):
         self.surface.blit(self.line_surface, (0, 0))
 
     def run(self):
+
+        #update
+        self.input()
+        self.timer_update()
+        self.sprites.update()
+
+        #drawing
         self.surface.fill(GRAY)
         self.sprites.draw(self.surface)
+
+
         self.sprites.update()
         self.draw_grid()
         self.display_surface.blit(self.surface, (PADDING, PADDING))
@@ -50,6 +82,13 @@ class Tetromino:
         self.sprite_group = sprite_group
         # create blocks
         self.blocks = [Block(self.sprite_group, pos, self.color) for pos in self.block_positions]
+    def move_down(self):
+         for block in self.blocks:
+             block.pos.y+=1
+    def move_horizontal(self,amount):
+        for block in self.blocks:
+            block.pos.x+=amount
+
 
 
 class Block(pygame.sprite.Sprite):
@@ -62,6 +101,7 @@ class Block(pygame.sprite.Sprite):
 
         # positions
         self.pos = pygame.Vector2(pos)+BLOCK_OFFSET
-        x = self.pos.x
-        y = self.pos.y
-        self.rect = self.image.get_rect(topleft=(x * CELL_SIZE, y * CELL_SIZE))
+
+        self.rect = self.image.get_rect(topleft=self.pos*CELL_SIZE)
+    def update(self):
+        self.rect.topleft=self.pos*CELL_SIZE

@@ -29,11 +29,13 @@ GRAY = '#1C1C1C'
 LINE_COLOR = '#FFFFFF'
 
 # game behaviour
-UPDATE_START_SPEED = 800
+UPDATE_START_SPEED = 600
 MOVE_WAIT_TIME = 200
 ROTATE_WAIT_TIME = 200
-BLOCK_OFFSET = pygame. Vector2(COLUMNS // 2, 5)
+BLOCK_OFFSET = pygame. Vector2(COLUMNS // 2,-1)
 FPS = 60
+
+
 # shapes
 TETROMINOS = {
     'T': {'shape': [(0,0), (-1,0), (1,0), (0,-1)], 'color': PURPLE},
