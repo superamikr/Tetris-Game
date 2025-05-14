@@ -2,6 +2,7 @@ import random
 from template import *
 from timer import Timer
 
+
 class Game(Template):
     def __init__(self):
         super().__init__()
@@ -21,20 +22,31 @@ class Game(Template):
         # self.block = Block(self.sprites, (4, 6), 'red')
 
         # Tetromino
-        self.tetromino = Tetromino(random.choice(list(TETROMINOS.keys())), self.sprites)
+        self.tetromino = Tetromino(random.choice(list(TETROMINOS.keys())), self.sprites,self.create_new_tetromino)
+        self.field_data = [[0 for x in range(COLUMNS)] for y in range(ROWS)]
 
-        #timer
+        # timer
         self.timers = {
-            'vertical move': Timer(UPDATE_START_SPEED,True, self.move_down),
-            'horizontal move': Timer(MOVE_WAIT_TIME)
+            'vertical move': Timer(UPDATE_START_SPEED, True, self.move_down),
+            'horizontal move': Timer(MOVE_WAIT_TIME),'faster vertical move': Timer(UPDATE_START_SPEED+50)
         }
         self.timers['vertical move'].activate()
 
     def timer_update(self):
-        for timer in  self.timers.values():
+        for timer in self.timers.values():
             timer.update()
+
+    #creating new tetromino
+    def create_new_tetromino(self):
+        self.tetromino = Tetromino(
+            random.choice(list(TETROMINOS.keys())),
+            self.sprites,
+            self.create_new_tetromino
+        )
+
     def move_down(self):
         self.tetromino.move_down()
+
 
     def input(self):
         keys = pygame.key.get_pressed()
@@ -45,7 +57,10 @@ class Game(Template):
             if keys[pygame.K_d]:
                 self.tetromino.move_horizontal(1)
                 self.timers['horizontal move'].activate()
-
+        if not self.timers['faster vertical move'].active:
+            if keys[pygame.K_s]:
+                self.tetromino.faster_down_move()
+                self.timers['faster vertical move'].activate()
 
     def draw_grid(self):
         for col in range(1, COLUMNS):
@@ -58,15 +73,14 @@ class Game(Template):
 
     def run(self):
 
-        #update
+        # update
         self.input()
         self.timer_update()
         self.sprites.update()
 
-        #drawing
+        # drawing
         self.surface.fill(GRAY)
         self.sprites.draw(self.surface)
-
 
         self.sprites.update()
         self.draw_grid()
@@ -75,20 +89,39 @@ class Game(Template):
 
 
 class Tetromino:
-    def __init__(self, shape, sprite_group):
+    def __init__(self, shape, sprite_group,create_new_tetromino):
         # setup
         self.block_positions = TETROMINOS[shape]['shape']
         self.color = TETROMINOS[shape]['color']
         self.sprite_group = sprite_group
+        self.create_new_tetromino = create_new_tetromino
         # create blocks
         self.blocks = [Block(self.sprite_group, pos, self.color) for pos in self.block_positions]
-    def move_down(self):
-         for block in self.blocks:
-             block.pos.y+=1
-    def move_horizontal(self,amount):
-        for block in self.blocks:
-            block.pos.x+=amount
 
+
+    # collisions
+    def next_move_horizontal_collide(self, blocks, amount):
+        collision_list = [block.horizontal_collide(int(block.pos.x + amount)) for block in self.blocks]
+        return True if any(collision_list) else False
+    def next_move_vertical_collide(self, blocks, amount):
+        collision_list = [block.vertical_collide(int(block.pos.y + amount)) for block in self.blocks]
+        return True if any(collision_list) else False
+
+    # movement
+    def faster_down_move(self):
+        if not self.next_move_vertical_collide(self.blocks, 1):
+            for block in self.blocks:
+                block.pos.y += 1
+    def move_down(self):
+        if not self.next_move_vertical_collide(self.blocks, 1):
+            for block in self.blocks:
+                block.pos.y += 1
+        else:
+            self.create_new_tetromino()
+    def move_horizontal(self, amount):
+        if not self.next_move_horizontal_collide(self.blocks,amount):
+            for block in self.blocks:
+                block.pos.x += amount
 
 
 class Block(pygame.sprite.Sprite):
@@ -100,8 +133,15 @@ class Block(pygame.sprite.Sprite):
         self.image.fill(color)
 
         # positions
-        self.pos = pygame.Vector2(pos)+BLOCK_OFFSET
+        self.pos = pygame.Vector2(pos) + BLOCK_OFFSET
 
-        self.rect = self.image.get_rect(topleft=self.pos*CELL_SIZE)
+        self.rect = self.image.get_rect(topleft=self.pos * CELL_SIZE)
+
+    def horizontal_collide(self, x):
+        if not 0 <= x < COLUMNS:
+            return True
+    def vertical_collide(self, y):
+        if y >= ROWS:
+            return True
     def update(self):
-        self.rect.topleft=self.pos*CELL_SIZE
+        self.rect.topleft = self.pos * CELL_SIZE
