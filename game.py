@@ -1,4 +1,7 @@
 import random
+
+import pygame
+
 from template import *
 from timer import Timer
 
@@ -25,7 +28,7 @@ class Game(Template):
         self.field_data = [[0 for x in range(COLUMNS)] for y in range(ROWS)]
                                 #Expression            #doing every time the Expression
         self.tetromino = Tetromino(
-           'I', # random.choice(list(TETROMINOS.keys())),
+            random.choice(list(TETROMINOS.keys())),
             self.sprites,
             self.create_new_tetromino
             ,self.field_data)
@@ -35,7 +38,9 @@ class Game(Template):
         # timer
         self.timers = {
             'vertical move': Timer(UPDATE_START_SPEED, True, self.move_down),
-            'horizontal move': Timer(MOVE_WAIT_TIME),'faster vertical move': Timer(UPDATE_START_SPEED-UPDATE_START_SPEED//2)
+            'horizontal move': Timer(MOVE_WAIT_TIME),
+            'faster vertical move': Timer(UPDATE_START_SPEED-UPDATE_START_SPEED//2),
+            'rotate':Timer(ROTATE_WAIT_TIME)
         }
         self.timers['vertical move'].activate()
 
@@ -47,7 +52,7 @@ class Game(Template):
     def create_new_tetromino(self):
         self.check_full_rows()
         self.tetromino = Tetromino(
-           'I', # random.choice(list(TETROMINOS.keys())),
+            random.choice(list(TETROMINOS.keys())),
             self.sprites,
             self.create_new_tetromino,self.field_data
         )
@@ -58,17 +63,27 @@ class Game(Template):
 
     def input(self):
         keys = pygame.key.get_pressed()
+        mouse = pygame.mouse.get_pressed()
+        # horizontal movement
         if not self.timers['horizontal move'].active:
-            if keys[pygame.K_a]:
+            if keys[pygame.K_a] or keys[pygame.K_LEFT]:
                 self.tetromino.move_horizontal(-1)
                 self.timers['horizontal move'].activate()
-            if keys[pygame.K_d]:
+            if keys[pygame.K_d] or keys[pygame.K_RIGHT]:
                 self.tetromino.move_horizontal(1)
                 self.timers['horizontal move'].activate()
+        # faster vertical movement
         if not self.timers['faster vertical move'].active:
-            if keys[pygame.K_s]:
-                self.tetromino.faster_down_move()
+            if keys[pygame.K_s] or keys[pygame.K_DOWN]:
                 self.timers['faster vertical move'].activate()
+
+        # rotation
+        if not self.timers['rotate'].active:
+            if mouse[0]:
+                self.tetromino.rotate()
+                self.timers['rotate'].activate()
+
+
     def check_full_rows(self):
         #get full row indexes
         delete_rows = []
@@ -105,10 +120,12 @@ class Game(Template):
             pygame.draw.line(self.surface, LINE_COLOR, (0, y), (self.surface.get_width(), y), 1)
         self.surface.blit(self.line_surface, (0, 0))
 
+
     def run(self):
 
         # update
         self.input()
+
         self.timer_update()
         self.sprites.update()
 
@@ -143,10 +160,10 @@ class Tetromino:
         return True if any(collision_list) else False
 
     # movement
-    def faster_down_move(self):
-        if not self.next_move_vertical_collide(self.blocks, 1):
-            for block in self.blocks:
-                block.pos.y += 1
+    # def faster_down_move(self):
+    #     if not self.next_move_vertical_collide(self.blocks, 1):
+    #         for block in self.blocks:
+    #             block.pos.y += 1
     def move_down(self):
         if not self.next_move_vertical_collide(self.blocks, 1):
             for block in self.blocks:
@@ -161,6 +178,9 @@ class Tetromino:
         if not self.next_move_horizontal_collide(self.blocks,amount):
             for block in self.blocks:
                 block.pos.x += amount
+    #rotate
+    def rotate(self):
+        print("rotate")
 
 
 class Block(pygame.sprite.Sprite):
