@@ -28,7 +28,8 @@ class Game(Template):
         self.field_data = [[0 for x in range(COLUMNS)] for y in range(ROWS)]
                                 #Expression            #doing every time the Expression
         self.tetromino = Tetromino(
-            random.choice(list(TETROMINOS.keys())),
+            'I',
+            # random.choice(list(TETROMINOS.keys())),
             self.sprites,
             self.create_new_tetromino
             ,self.field_data)
@@ -39,7 +40,7 @@ class Game(Template):
         self.timers = {
             'vertical move': Timer(UPDATE_START_SPEED, True, self.move_down),
             'horizontal move': Timer(MOVE_WAIT_TIME),
-            'faster vertical move': Timer(UPDATE_START_SPEED-UPDATE_START_SPEED//2),
+            'faster vertical move': Timer(UPDATE_START_SPEED-100),
             'rotate':Timer(ROTATE_WAIT_TIME)
         }
         self.timers['vertical move'].activate()
@@ -52,7 +53,8 @@ class Game(Template):
     def create_new_tetromino(self):
         self.check_full_rows()
         self.tetromino = Tetromino(
-            random.choice(list(TETROMINOS.keys())),
+            'I',
+             # random.choice(list(TETROMINOS.keys())),
             self.sprites,
             self.create_new_tetromino,self.field_data
         )
@@ -142,6 +144,7 @@ class Game(Template):
 class Tetromino:
     def __init__(self, shape, sprite_group,create_new_tetromino,field_data):
         # setup
+        self.shape = shape
         self.block_positions = TETROMINOS[shape]['shape']
         self.color = TETROMINOS[shape]['color']
         self.sprite_group = sprite_group
@@ -180,7 +183,18 @@ class Tetromino:
                 block.pos.x += amount
     #rotate
     def rotate(self):
-        print("rotate")
+        if self.shape != '0' and not self.next_move_horizontal_collide(self.blocks,1) and not self.next_move_horizontal_collide(self.blocks,-1):
+            if self.shape =='I'and not self.next_move_horizontal_collide(self.blocks,2) and not self.next_move_horizontal_collide(self.blocks,-2):
+
+                # 1. pivot point
+                pivot_pos = self.blocks[0].pos
+
+                # 2. new block position
+                new_block_position = [block.rotate(pivot_pos) for block in self.blocks]
+
+                for i,block in enumerate(self.blocks):
+                    block.pos = new_block_position[i]
+
 
 
 class Block(pygame.sprite.Sprite):
@@ -196,6 +210,11 @@ class Block(pygame.sprite.Sprite):
 
         self.rect = self.image.get_rect(topleft=self.pos * CELL_SIZE)
 
+    def rotate(self,pivot_pos):
+        distance = self.pos - pivot_pos
+        rotated = distance.rotate(90)
+        new_pos = pivot_pos + rotated
+        return new_pos
     def horizontal_collide(self, x,field_data):
         if not 0 <= x < COLUMNS:
             return True
