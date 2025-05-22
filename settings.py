@@ -11,6 +11,11 @@ PREVIEW_HEIGHT_FRACTION = 0.7
 SCORE_HEIGHT_FRACTION = 1-PREVIEW_HEIGHT_FRACTION
 
 
+# BOSS_WIDTH = 600
+# HEALTH_BAR_HEIGHT_FRACTION = 0.3
+# BOSS_HEIGHT_FRACTION = 1-PREVIEW_HEIGHT_FRACTION
+
+
 #window
 PADDING = 20
 WINDOW_WIDTH = GAME_WIDTH+SIDEBAR_WIDTH+PADDING*3#between the side and the game, and the to borders
@@ -27,9 +32,11 @@ CYAN = '#6cc6d9'
 ORANGE = '#f07e13'
 GRAY = '#1C1C1C'
 LINE_COLOR = '#FFFFFF'
+WHITE = (255, 255, 255)
+DARK_BLUE = (0, 50, 200)
 
 # game behaviour
-UPDATE_START_SPEED = 300
+UPDATE_START_SPEED = 600
 MOVE_WAIT_TIME = 200
 ROTATE_WAIT_TIME = 200
 BLOCK_OFFSET = pygame. Vector2(COLUMNS // 2,-1)
@@ -39,7 +46,7 @@ FPS = 60
 # shapes
 TETROMINOS = {
     'T': {'shape': [(0,0), (-1,0), (1,0), (0,-1)], 'color': PURPLE},
-    '0': {'shape': [(0,0), (0,-1), (1,0), (1,-1)], 'color': YELLOW},
+    'O': {'shape': [(0,0), (0,-1), (1,0), (1,-1)], 'color': YELLOW},
     'J': {'shape': [(0,0), (0,-1), (0,1), (-1,1)], 'color': BLUE},
     'L': {'shape': [(0,0), (0,-1), (0,1), (1,1)], 'color': ORANGE},
     'I': {'shape': [(0,0), (0,-1), (0,-2), (0,1)], 'color': CYAN},
