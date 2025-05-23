@@ -5,15 +5,17 @@ from timer import Timer
 
 
 class Game(Template):
-    def __init__(self, get_next_shape):
+    def __init__(self, get_next_shape,update_score):
         super().__init__()
         # General
         self.surface = pygame.Surface((GAME_WIDTH, GAME_HEIGHT))
         self.display_surface = pygame.display.get_surface()
         self.rect = self.surface.get_rect(topleft=(PADDING, PADDING))
 
+
         # game connection
         self.get_next_shape = get_next_shape
+        self.update_score = update_score
 
         # the-lines
         self.line_surface = pygame.Surface(self.surface.get_size(), pygame.SRCALPHA)
@@ -35,13 +37,32 @@ class Game(Template):
             self.field_data)
 
         # timer
+        self.down_speed = UPDATE_START_SPEED
+        self.faster_down_speed = self.down_speed * 0.3
+        self.down_pressed = False
         self.timers = {
             'vertical move': Timer(UPDATE_START_SPEED, True, self.move_down),
             'horizontal move': Timer(MOVE_WAIT_TIME),
-            'faster vertical move': Timer(UPDATE_START_SPEED - 100),
             'rotate': Timer(ROTATE_WAIT_TIME)
         }
         self.timers['vertical move'].activate()
+
+        # Score
+        self.current_level = 1
+        self.current_score = 0
+        self.current_lines = 0
+
+    def calculate_score(self, num_lines):
+        self.current_lines += num_lines
+        self.current_score += SCORE_DATA[num_lines]*self.current_level
+
+        # every 10 lines += level by 1
+        if self.current_lines/10 > self.current_level:
+            self.current_level += 1
+            self.down_speed *= 0.75
+            self.faster_down_speed = self.down_speed * 0.3
+            self.timers['vertical move'] = self.down_speed
+        self.update_score(self.current_lines,self.current_score,self.current_level)
 
     def timer_update(self):
         for timer in self.timers.values():
@@ -70,10 +91,13 @@ class Game(Template):
             if keys[pygame.K_d] or keys[pygame.K_RIGHT]:
                 self.tetromino.move_horizontal(1)
                 self.timers['horizontal move'].activate()
-        # faster vertical movement
-        if not self.timers['faster vertical move'].active:
-            if keys[pygame.K_s] or keys[pygame.K_DOWN]:
-                self.timers['faster vertical move'].activate()
+            # faster vertical movement
+            if not self.down_pressed and (keys[pygame.K_s] or keys[pygame.K_DOWN]):
+                self.down_pressed = True
+                self.timers['vertical move'].duration = self.faster_down_speed
+            if self.down_pressed and not (keys[pygame.K_s] or keys[pygame.K_DOWN]):
+                self.down_pressed = False
+                self.timers['vertical move'].duration = self.down_speed
 
         # rotation
         if not self.timers['rotate'].active:
@@ -107,6 +131,8 @@ class Game(Template):
             self.field_data = [[0 for x in range(COLUMNS)] for y in range(ROWS)]
             for block in self.sprites:
                 self.field_data[int(block.pos.y)][int(block.pos.x)] = block
+            # update score
+            self.calculate_score(len(delete_rows))
 
     def draw_grid(self):
         for col in range(1, COLUMNS):
