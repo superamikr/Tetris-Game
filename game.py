@@ -5,17 +5,17 @@ from timer import Timer
 
 
 class Game(Template):
-    def __init__(self, get_next_shape,update_score):
+    def __init__(self, get_next_shape, update_score, game_over):
         super().__init__()
         # General
         self.surface = pygame.Surface((GAME_WIDTH, GAME_HEIGHT))
         self.display_surface = pygame.display.get_surface()
         self.rect = self.surface.get_rect(topleft=(PADDING, PADDING))
 
-
         # game connection
         self.get_next_shape = get_next_shape
         self.update_score = update_score
+        self.game_over = game_over
 
         # the-lines
         self.line_surface = pygame.Surface(self.surface.get_size(), pygame.SRCALPHA)
@@ -54,15 +54,15 @@ class Game(Template):
 
     def calculate_score(self, num_lines):
         self.current_lines += num_lines
-        self.current_score += SCORE_DATA[num_lines]*self.current_level
+        self.current_score += SCORE_DATA[num_lines] * self.current_level
 
         # every 10 lines += level by 1
-        if self.current_lines/10 > self.current_level:
+        if self.current_lines / 10 > self.current_level:
             self.current_level += 1
             self.down_speed *= 0.75
             self.faster_down_speed = self.down_speed * 0.3
-            self.timers['vertical move'] = self.down_speed
-        self.update_score(self.current_lines,self.current_score,self.current_level)
+            self.timers['vertical move'].duration = self.down_speed
+        self.update_score(self.current_lines, self.current_score, self.current_level)
 
     def timer_update(self):
         for timer in self.timers.values():
@@ -71,10 +71,19 @@ class Game(Template):
     # creating new tetromino
     def create_new_tetromino(self):
         self.check_full_rows()
+        shape = self.get_next_shape()
+        test_blocks = TETROMINOS[shape]['shape']
+        for pos in test_blocks:
+            test_x = int(pos[0] + BLOCK_OFFSET.x)
+            test_y = int(pos[1] + BLOCK_OFFSET.y)
+            if 0 <= test_x < COLUMNS and 0 <= test_y < ROWS and self.field_data[test_y][test_x]:
+                self.game_over(self.field_data)
+                return
         self.tetromino = Tetromino(
-            self.get_next_shape(),
+            shape,
             self.sprites,
-            self.create_new_tetromino, self.field_data
+            self.create_new_tetromino,
+            self.field_data
         )
 
     def move_down(self):
@@ -101,7 +110,7 @@ class Game(Template):
 
         # rotation
         if not self.timers['rotate'].active:
-            if keys[pygame.K_SPACE]:
+            if keys[pygame.K_w] or keys[pygame.K_UP]:
                 self.tetromino.rotate()
                 self.timers['rotate'].activate()
 
@@ -122,6 +131,7 @@ class Game(Template):
                     # "kills" the block sprite in the specific row,x
                     if isinstance(block, Block):
                         block.kill()
+
                 # move down the blocks
                 for row in self.field_data:
                     for block in row:
@@ -151,6 +161,9 @@ class Game(Template):
         self.timer_update()
         self.sprites.update()
 
+        # game over:
+        if all(self.field_data[0]):
+            self.game_over(self.field_data[0])
         # drawing
         self.surface.fill(GRAY)
         self.sprites.draw(self.surface)

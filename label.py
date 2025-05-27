@@ -18,14 +18,14 @@ class Label(pygame.sprite.Sprite):
         self.rect = self.image.get_rect(topleft=(x, y))
 
     def render_text(self):
-        """Render the label text."""
+        #Render the label text.
         if self.bg_color:
             return self.font.render(self.base_text, True, self.text_color, self.bg_color)
         else:
             return self.font.render(self.base_text, True, self.text_color)
 
     def update(self):
-        """Apply animation effect."""
+        #Apply animation effect.
         if self.effect == "fade":
             self.alpha += self.fade_direction * self.speed
             if self.alpha <= 0:
