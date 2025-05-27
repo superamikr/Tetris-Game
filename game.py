@@ -1,10 +1,10 @@
 import random
 
-from template import *
+from settings import *
 from timer import Timer
 
 
-class Game(Template):
+class Game():
     def __init__(self, get_next_shape, update_score, game_over):
         super().__init__()
         # General
@@ -153,22 +153,23 @@ class Game(Template):
             pygame.draw.line(self.surface, LINE_COLOR, (0, y), (self.surface.get_width(), y), 1)
         self.surface.blit(self.line_surface, (0, 0))
 
-    def run(self):
+    def run(self,isPause):
 
         # update
-        self.input()
+        if not isPause:
+            self.input()
 
-        self.timer_update()
-        self.sprites.update()
+            self.timer_update()
+            self.sprites.update()
 
-        # game over:
-        if all(self.field_data[0]):
-            self.game_over(self.field_data[0])
+            # game over:
+            if all(self.field_data[0]):
+                self.game_over(self.field_data[0])
+
+            self.sprites.update()
         # drawing
         self.surface.fill(GRAY)
         self.sprites.draw(self.surface)
-
-        self.sprites.update()
         self.draw_grid()
         self.display_surface.blit(self.surface, (PADDING, PADDING))
         pygame.draw.rect(self.display_surface, LINE_COLOR, self.rect, 2, 2)

@@ -29,15 +29,20 @@ class Main:
         self.isAnimatingGameOver = False
         self.game_over_animation_timer = pygame.time.get_ticks()
         # Settings window
+        self.SettingsSurface = pygame.Surface((WINDOW_WIDTH, WINDOW_HEIGHT), pygame.SRCALPHA).convert_alpha()
         self.isSettings = False
+        # Buttons setup
+        self.settingsButtons = pygame.sprite.Group()
+        # Labels setup
+        self.controlsLabels = pygame.sprite.Group()
         #Controls
         self.isControls = False
 
         # shapes
         self.next_shapes = [choice(list(TETROMINOS.keys())) for shape in range(3)]
 
-        # Buttons setup
-        self.settingsButtons = pygame.sprite.Group()
+
+
 
 
         # Labels setup
@@ -103,7 +108,8 @@ class Main:
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_ESCAPE:
                         self.isSettings = not self.isSettings
-
+                for button in self.settingsButtons:
+                    button.handle_event(event)
 
             # display
             self.display_surface.fill(GRAY)
@@ -129,12 +135,13 @@ class Main:
                         pygame.quit()
                         exit()
                 else:
+                    self.score.run()
+                    self.game.run(self.isSettings)
+                    self.preview.run(self.next_shapes)
                     if self.isSettings:
                         self.SettingsMenu()
-                    else:
-                        self.score.run()
-                        self.game.run()
-                        self.preview.run(self.next_shapes)
+                        self.controlsLabels.draw(self.display_surface)
+                        self.controlsLabels.update()
 
             # screen updating - Updates the game's screen
             pygame.display.update()
@@ -156,30 +163,29 @@ class Main:
         self.game_over_animation_timer = pygame.time.get_ticks()
 
     def SettingsMenu(self):
-        SettingsSurface = pygame.Surface((WINDOW_WIDTH, WINDOW_HEIGHT), pygame.SRCALPHA).convert_alpha()
+
         font = pygame.font.SysFont("freesansbold.ttf", 38)
         x = WINDOW_WIDTH * 0.1
         y = WINDOW_HEIGHT - WINDOW_HEIGHT / 5
-        SettingsSurface.fill((255,255,255))
-        SettingsSurface.fill((0, 0, 0, 60))  # Transparent black
-        self.display_surface.blit(SettingsSurface, (0, 0))
+        self.SettingsSurface.fill((0, 0, 0, 60))  # Transparent black
+        self.display_surface.blit(self.SettingsSurface, (0, 0))
 
         if len(self.settingsButtons.sprites()) == 0:  # Prevents duplicates
             self.AddButton(x, y, 200, 50, "Controls", font, (0, 0, 150), (255, 0, 0),
                            (255, 255, 255), self.settingsButtons, command=self.ControlsWin)
 
-        # Clean up redundant button code
         self.settingsButtons.draw(self.display_surface)
+
         self.settingsButtons.update()
 
     def ControlsWin(self):
-        controlsSurface = pygame.Surface((WINDOW_WIDTH, WINDOW_HEIGHT))
-        controlsRect = controlsSurface.get_rect(topright=(WINDOW_WIDTH, PADDING))
-        # spacebarRect =
-        # pygame.draw.rect(spacebarRect,border_radius=50)
+        print("controls")
+        controlsRect = self.SettingsSurface.get_rect(topright=(WINDOW_WIDTH, PADDING))
         font = pygame.font.SysFont("freesansbold.ttf", 38)
-        controlsSurface.fill(GRAY)
-        self.display_surface.blit(controlsSurface, controlsRect)
+        self.controlsLabels.add(Label(WINDOW_WIDTH-4*WINDOW_WIDTH/5,WINDOW_HEIGHT-WINDOW_HEIGHT*0.1,"SPACE",font,(0,0,0),outline_color=(255,255,255)))
+
+        self.SettingsSurface.fill((255,255,255,10))
+        self.display_surface.blit(self.SettingsSurface, controlsRect)
 
 
 
